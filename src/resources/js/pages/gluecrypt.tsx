@@ -1,18 +1,22 @@
-import {Navbar} from "../../components/navbar";
 import {Box} from "../../components/box";
+import {BoxParameters} from '../../components/boxParameters';
+import {Navbar} from "../../components/navbar";
 
 
 export default function Gluecrypt() {
     return (
         <>
-            <Navbar></Navbar>
-            <div className={"flex flex-col items-center justify-center h-screen"}>
-                <div className={"flex flex-row"}>
-                    
+            <Navbar />
+            <div className={'flex min-h-[calc(100vh-64px)] w-full flex-col items-center justify-center gap-6 p-4'}>
+                <div className={'flex w-full max-w-5xl flex-row justify-center gap-6'}>
+                    <Box placeholder="Wprowadź tekst do zaszyfrowania..." buttonText="Zaszyfruj" buttonColor="bg-[#36522e]" />
+                    <BoxParameters />
                 </div>
-                <Box></Box>
-                {/*<Box></Box>*/}
+                <div className={'flex w-full max-w-5xl flex-row justify-center gap-6'}>
+                    <Box placeholder="Wprowadź tekst do odszyfrowania..." buttonText="Odszyfruj" buttonColor="bg-[#36382e]" />
+                    <BoxParameters isEncryption={false} />
+                </div>
             </div>
         </>
-    )
+    );
 }
