@@ -57,7 +57,6 @@ export function BoxParameters({
                     className="w-full rounded-lg border border-gray-200 bg-gray-50 p-2 text-sm focus:ring-2 focus:ring-gray-200 focus:outline-none"
                 >
                     <option>AES</option>
-                    <option>ChaCha20</option>
                 </select>
             </div>
 

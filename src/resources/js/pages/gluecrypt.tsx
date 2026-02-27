@@ -1,5 +1,4 @@
 import {useState} from "react";
-import { Toaster } from 'react-hot-toast';
 import {Box} from "../../components/box";
 import {BoxParameters} from '../../components/boxParameters';
 import {Navbar} from "../../components/navbar";
