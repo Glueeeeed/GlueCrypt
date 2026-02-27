@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {Box} from "../../components/box";
 import {BoxParameters} from '../../components/boxParameters';
+import {Footer} from "../../components/footer";
 import {Navbar} from "../../components/navbar";
 
 
@@ -13,8 +14,8 @@ export default function Gluecrypt() {
     return (
         <>
             <Navbar />
-            <div className={'flex min-h-[calc(100vh-64px)] w-full flex-col items-center justify-center gap-6 p-4'}>
-                <div className={'flex w-full max-w-5xl flex-row justify-center gap-6'}>
+            <div className={'flex min-h-[calc(100vh-64px)] w-full flex-col items-center justify-center gap-6 p-4 max-md:mt-50'}>
+                <div className={'flex w-full max-w-5xl flex-row justify-center gap-6 max-md:flex-col'}>
                     <Box isEncryption={isEncryption} algorithm={algorithm} type={type} cryptoKey={encKey} keyLength={keyLength} />
                     <BoxParameters
                         isEncryption={isEncryption}
@@ -30,6 +31,7 @@ export default function Gluecrypt() {
                     />
                 </div>
             </div>
+            <Footer />
         </>
     );
 }

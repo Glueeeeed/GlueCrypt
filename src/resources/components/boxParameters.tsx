@@ -27,7 +27,7 @@ export function BoxParameters({
 }: BoxParametersProps) {
     const title = isEncryption ? 'Opcje Szyfrowania' : 'Opcje Deszyfrowania';
     return (
-        <div className="flex w-full max-w-xs flex-col gap-4 rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-sm">
+        <div className="flex w-full max-w-xs max-md:max-w-3xl flex-col gap-4 rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-sm">
             <h1 className="mb-2 text-center text-xl font-bold text-[#36382e]">{title}</h1>
 
             <div className="flex flex-col gap-1.5">
