@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+        $middleware->encryptCookies(except: [
+            'token',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
