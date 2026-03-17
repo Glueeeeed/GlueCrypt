@@ -28,6 +28,8 @@
     },
     "dependencies": {
         "@inertiajs/react": "^2.3.7",
+        "@noble/ciphers": "^2.1.1",
+        "@noble/hashes": "^2.0.1",
         "@tailwindcss/vite": "^4.1.11",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
