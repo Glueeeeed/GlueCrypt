@@ -1,4 +1,5 @@
-import {generateRandomKey} from "@/cryptoUtils";
+import {generateRandomKey} from '@/cryptoUtils';
+
 
 interface BoxParametersProps {
     isEncryption: boolean;

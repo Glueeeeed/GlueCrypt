@@ -1,6 +1,6 @@
 import {useState} from "react";
-import {initializeOperation} from "@/cryptoUtils";
-import { ErrorNotification } from './notifications/error';
+import { initializeOperation } from '@/cryptoUtils';
+import { ErrorNotification } from '../notifications/error';
 
 interface BoxProps {
     isEncryption: boolean;
