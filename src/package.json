@@ -38,6 +38,7 @@
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
         "globals": "^15.14.0",
+        "idb": "^8.0.3",
         "laravel-vite-plugin": "^2.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",

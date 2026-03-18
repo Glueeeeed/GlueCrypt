@@ -22,9 +22,6 @@ export default function GluecryptAccount() {
                                     <button className="w-full rounded-lg bg-gray-50 px-4 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100">
                                         Edytuj profil
                                     </button>
-                                    <button className="w-full rounded-lg bg-gray-50 px-4 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100">
-                                        Historia Operacji
-                                    </button>
                                     <button className="w-full rounded-lg bg-red-50 px-4 py-2 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-100">
                                         Wyloguj się
                                     </button>

@@ -11,6 +11,7 @@ export default function Gluecrypt() {
     const [keyLength, setKeyLength] = useState('256');
     const [encKey, setEncKey] = useState('');
     const [type, setType] = useState('text');
+    const [saveToHistory, setSaveToHistory] = useState(true);
     return (
         <>
             <Navbar />
@@ -28,6 +29,8 @@ export default function Gluecrypt() {
                         setKey={setEncKey}
                         keyLength={keyLength}
                         setKeyLength={setKeyLength}
+                        saveToHistory={saveToHistory}
+                        setSaveToHistory={setSaveToHistory}
                     />
                 </div>
             </div>

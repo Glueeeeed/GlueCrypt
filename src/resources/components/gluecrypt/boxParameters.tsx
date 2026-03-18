@@ -12,9 +12,13 @@ interface BoxParametersProps {
     setKey: (key: string) => void;
     setType: (type: string) => void;
     type: string;
+    saveToHistory: boolean;
+    setSaveToHistory: (saveToHistory: boolean) => void;
 }
 
 export function BoxParameters({
+    saveToHistory,
+    setSaveToHistory,
     cryptoKey,
     isEncryption,
     setIsEncryption,
@@ -28,7 +32,7 @@ export function BoxParameters({
 }: BoxParametersProps) {
     const title = isEncryption ? 'Opcje Szyfrowania' : 'Opcje Deszyfrowania';
     return (
-        <div className="flex w-full max-w-xs max-md:max-w-3xl flex-col gap-4 rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-sm">
+        <div className="flex w-full max-w-xs flex-col gap-4 rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-sm max-md:max-w-3xl">
             <h1 className="mb-2 text-center text-xl font-bold text-[#36382e]">{title}</h1>
 
             <div className="flex flex-col gap-1.5">
@@ -96,7 +100,11 @@ export function BoxParameters({
             <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                     <label className="text-sm font-semibold text-gray-600">Klucz</label>
-                    {isEncryption && <button onClick={() => setKey(generateRandomKey(12))} className="text-[10px] font-medium text-blue-600 hover:underline">Generuj losowy</button>}
+                    {isEncryption && (
+                        <button onClick={() => setKey(generateRandomKey(12))} className="text-[10px] font-medium text-blue-600 hover:underline">
+                            Generuj losowy
+                        </button>
+                    )}
                 </div>
 
                 {isEncryption && (
@@ -118,6 +126,18 @@ export function BoxParameters({
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 p-2 text-sm focus:ring-2 focus:ring-gray-200 focus:outline-none"
                     />
                 )}
+            </div>
+
+            <div className="flex flex-row gap-1.5 border-gray-200  rounded-md  bg-gray-50 px-3 py-3">
+                <div>
+                    <label className="text-sm font-semibold text-gray-600">Zapisywanie do Historii</label>
+                    <p className="text-xs text-gray-500">Włącz zapisywanie twoich operacji w bezpiecznej historii.</p>
+                </div>
+
+                <label className="inline-flex cursor-pointer items-center">
+                    <input type="checkbox" value="" className="peer sr-only" checked={saveToHistory} onChange={(e) => setSaveToHistory(e.target.checked)} />
+                    <div className="peer relative h-5 w-11 rounded-full bg-gray-200 peer-checked:bg-[#36382e] peer-focus:outline-none after:absolute after:inset-s-0.5 after:top-0.5 after:h-4 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full"></div>
+                </label>
             </div>
         </div>
     );

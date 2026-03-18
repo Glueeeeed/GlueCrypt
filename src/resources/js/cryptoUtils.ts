@@ -2,6 +2,7 @@ import { gcm } from '@noble/ciphers/aes.js';
 import { bytesToHex, type Cipher, hexToBytes, randomBytes } from '@noble/ciphers/utils.js';
 import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
+import { openDB } from 'idb';
 
 export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File) : Promise<object> {
     if (!cryptoKey) {
@@ -102,6 +103,39 @@ export async function decryptAesGcm(cipherTextHex: string, keyHex: string, nonce
     const aes: Cipher = gcm(key, nonce);
     const plainTextBytes: Uint8Array = aes.decrypt(cipherText);
     return new TextDecoder().decode(plainTextBytes);
+}
+
+async function getUserSecrets(): Promise<string[]> {
+    const secrets: string[] = [];
+    const db = await openDB('gluecrypt', 2, {
+        upgrade(db) {
+            if (!db.objectStoreNames.contains('secrets')) {
+                db.createObjectStore('secrets');
+            }
+        },
+    });
+    const secretKey : string = await db.get('secrets', 'privateKey');
+    const salt : string = await db.get('secrets', 'salt');
+    const privateKeyNonce : string = await db.get('secrets', 'privateKeyNonce');
+    secrets.push(secretKey, salt, privateKeyNonce);
+    return secrets;
+}
+
+
+async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string): Promise<void> {
+    const fingerprint = sessionStorage.getItem('fingerprint') as string;
+    const deviceID = localStorage.getItem('DeviceID') as string;
+    const baseKey = sessionStorage.getItem('baseKey') as string;
+    const combinedKey = fingerprint + deviceID + baseKey;
+    const secrets : string[] = await getUserSecrets();
+    const secretKey : string =  await decryptAesGcm(secrets[0], combinedKey, secrets[2], secrets[1]);
+    const keyNonce : string = bytesToBase64(randomBytes(12));
+    const textNonce : string = bytesToBase64(randomBytes(12));
+    const operationSalt : string = bytesToBase64(randomBytes(16));
+    const keyCipher : string = await encryptAesGcm(key, secretKey, keyNonce, operationSalt);
+    const textCipher : string = await encryptAesGcm(text, secretKey, textNonce, operationSalt);
+    console.log(keyCipher, textCipher, algorithm, keyLength);
+
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
