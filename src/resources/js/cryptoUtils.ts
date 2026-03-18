@@ -3,8 +3,16 @@ import { bytesToHex, type Cipher, hexToBytes, randomBytes } from '@noble/ciphers
 import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { openDB } from 'idb';
+import {type ThumbmarkResponse} from "@thumbmarkjs/thumbmarkjs";
+import * as ThumbmarkJS from "@thumbmarkjs/thumbmarkjs";
 
-export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File) : Promise<object> {
+
+
+export async function getFingerprint() : Promise<ThumbmarkResponse> {
+    const tm = new ThumbmarkJS.Thumbmark();
+    return await tm.get();
+}
+export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey?: object) : Promise<object> {
     if (!cryptoKey) {
         return { success: false, message: 'Klucz jest wymagany!' };
     } else if (cryptoKey.length < 5) {
@@ -20,10 +28,10 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
             if (type === 'file' && data instanceof File) {
                 const fileData = new Uint8Array(await data.arrayBuffer());
                 const nonce : Uint8Array<ArrayBufferLike> = randomBytes(12);
-                const salt : Uint8Array<ArrayBufferLike> = randomBytes(16);
+                const salt : Uint8Array<ArrayBufferLike> = randomBytes(32);
 
                 if (isEncryption) {
-                    const encrypted : Uint8Array<ArrayBufferLike> = await encryptAesGcmRaw(fileData, keyHex, bytesToHex(nonce), bytesToHex(salt));
+                    const encrypted : Uint8Array<ArrayBufferLike> = await encryptAesGcmRaw(fileData, keyHex, nonce, salt);
                     const result = new Uint8Array(salt.length + nonce.length + encrypted.length);
                     result.set(salt);
                     result.set(nonce, salt.length);
@@ -34,19 +42,22 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                     const salt : Uint8Array<ArrayBuffer> = fileData.slice(0, 32);
                     const nonce : Uint8Array<ArrayBuffer> = fileData.slice(32, 44);
                     const cipherText : Uint8Array<ArrayBuffer> = fileData.slice(44);
-                    const decrypted : Uint8Array<ArrayBufferLike> = await decryptAesGcmRaw(cipherText, keyHex, bytesToHex(nonce), bytesToHex(salt));
+                    const decrypted : Uint8Array<ArrayBufferLike> = await decryptAesGcmRaw(cipherText, keyHex, nonce, salt);
                     downloadFile(decrypted, data.name.replace(".gluecrypted", ""), "application/octet-stream");
                     return { success: true};
                 }
             } else if (typeof data === 'string') {
                 const nonce = bytesToBase64(randomBytes(12));
-                const salt = bytesToBase64(randomBytes(16));
+                const salt = bytesToBase64(randomBytes(32));
                 if (isEncryption) {
                     const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
+                    console.log(data, keyHex, nonce, salt, encrypted);
+                    const baseKeyObj = baseKey as any;
+                    await saveToHistory(encrypted, keyHex, algorithm, keyLength, baseKeyObj.baseKey );
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {
-                    const [salt, nonceHex, cipherTextHex] = data.split(":");
-                    const decrypted = await decryptAesGcm(cipherTextHex, keyHex, nonceHex, salt);
+                    const [salt, nonce, cipherText] = data.split(":");
+                    const decrypted = await decryptAesGcm(cipherText, keyHex, nonce, salt);
                     return { success: true, message: decrypted };
                 }
             }
@@ -69,16 +80,14 @@ function downloadFile(data: Uint8Array | BlobPart, filename: string, mimeType: s
     window.URL.revokeObjectURL(url);
 }
 
-export async function encryptAesGcmRaw(data: Uint8Array, keyBase64: string, nonceBase64: string, saltHex: string): Promise<Uint8Array> {
-    const key: Uint8Array = pbkdf2(sha256, keyBase64, hexToBytes(saltHex), { c: 524288, dkLen: 32 });
-    const nonce: Uint8Array = hexToBytes(nonceBase64);
+export async function encryptAesGcmRaw(data: Uint8Array, keyHex: string, nonce: Uint8Array, salt: Uint8Array): Promise<Uint8Array> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, salt, { c: 524288, dkLen: 32 });
     const aes: Cipher = gcm(key, nonce);
     return aes.encrypt(data);
 }
 
-export async function decryptAesGcmRaw(cipherText: Uint8Array, keyHex: string, nonceHex: string, saltHex: string): Promise<Uint8Array> {
-    const key: Uint8Array = pbkdf2(sha256, keyHex, hexToBytes(saltHex), { c: 524288, dkLen: 32 });
-    const nonce: Uint8Array = hexToBytes(nonceHex);
+export async function decryptAesGcmRaw(cipherText: Uint8Array, keyHex: string, nonce: Uint8Array, salt: Uint8Array): Promise<Uint8Array> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, salt, { c: 524288, dkLen: 32 });
     const aes: Cipher = gcm(key, nonce);
     return aes.decrypt(cipherText);
 }
@@ -87,8 +96,8 @@ export function generateRandomKey(length: number): string {
     return bytesToHex(randomBytes(length));
 }
 
-export async function encryptAesGcm(plainText: string, keyHex: string, nonceBase64: string, salt: string): Promise<string> {
-    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(salt), { c: 524288, dkLen: 32 });
+export async function encryptAesGcm(plainText: string, keyHex: string, nonceBase64: string, saltBase64: string): Promise<string> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(saltBase64), { c: 524288, dkLen: 32 });
     const nonce: Uint8Array = base64ToBytes(nonceBase64);
     const data: Uint8Array = new TextEncoder().encode(plainText);
     const aes: Cipher = gcm(key, nonce);
@@ -96,10 +105,10 @@ export async function encryptAesGcm(plainText: string, keyHex: string, nonceBase
     return bytesToBase64(cipher);
 }
 
-export async function decryptAesGcm(cipherTextHex: string, keyHex: string, nonceHex: string, salt: string): Promise<string> {
-    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(salt), { c: 524288, dkLen: 32 });
-    const nonce: Uint8Array = base64ToBytes(nonceHex);
-    const cipherText: Uint8Array = base64ToBytes(cipherTextHex);
+export async function decryptAesGcm(cipherTextBase64: string, keyHex: string, nonceBase64: string, saltBase64: string): Promise<string> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(saltBase64), { c: 524288, dkLen: 32 });
+    const nonce: Uint8Array = base64ToBytes(nonceBase64);
+    const cipherText: Uint8Array = base64ToBytes(cipherTextBase64);
     const aes: Cipher = gcm(key, nonce);
     const plainTextBytes: Uint8Array = aes.decrypt(cipherText);
     return new TextDecoder().decode(plainTextBytes);
@@ -118,15 +127,16 @@ async function getUserSecrets(): Promise<string[]> {
     const salt : string = await db.get('secrets', 'salt');
     const privateKeyNonce : string = await db.get('secrets', 'privateKeyNonce');
     secrets.push(secretKey, salt, privateKeyNonce);
+    console.log(secrets);
     return secrets;
 }
 
 
-async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string): Promise<void> {
-    const fingerprint = sessionStorage.getItem('fingerprint') as string;
+async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string): Promise<void> {
+    const fingerprint = await getFingerprint();
     const deviceID = localStorage.getItem('DeviceID') as string;
-    const baseKey = sessionStorage.getItem('baseKey') as string;
-    const combinedKey = fingerprint + deviceID + baseKey;
+    const combinedKey = fingerprint.thumbmark + deviceID + baseKey;
+    console.log(fingerprint.thumbmark,deviceID,baseKey,combinedKey);
     const secrets : string[] = await getUserSecrets();
     const secretKey : string =  await decryptAesGcm(secrets[0], combinedKey, secrets[2], secrets[1]);
     const keyNonce : string = bytesToBase64(randomBytes(12));

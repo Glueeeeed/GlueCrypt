@@ -4,8 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Middleware\JwtMiddleware;
 
-Route::get('/gluecrypt', function () {
-    return Inertia::render('gluecrypt');
+Route::get('/gluecrypt', function (Illuminate\Http\Request $request) {
+    return Inertia::render('gluecrypt', [
+        'baseKey' => $request->attributes->get('jwt_decoded')
+    ]);
 })->middleware(JwtMiddleware::class);
 
 Route::get('/gluecrypt/account', function () {

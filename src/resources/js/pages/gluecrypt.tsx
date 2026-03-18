@@ -4,8 +4,11 @@ import {BoxParameters} from '../../components/gluecrypt/boxParameters';
 import {Footer} from "../../components/gluecrypt/footer";
 import {Navbar} from "../../components/gluecrypt/navbar";
 
+interface GluecryptProps {
+    baseKey?: object;
+}
 
-export default function Gluecrypt() {
+export default function Gluecrypt(baseKey : GluecryptProps) {
     const [algorithm, setAlgorithm] = useState('AES');
     const [isEncryption, setIsEncryption] = useState(true);
     const [keyLength, setKeyLength] = useState('256');
@@ -17,7 +20,7 @@ export default function Gluecrypt() {
             <Navbar />
             <div className={'flex min-h-[calc(100vh-80px)] mt-25 w-full flex-col items-center justify-center gap-6 p-4 bg-[#eff1ed]'}>
                 <div className={'flex w-full max-w-5xl flex-row justify-center gap-6 max-md:flex-col'}>
-                    <Box isEncryption={isEncryption} algorithm={algorithm} type={type} cryptoKey={encKey} keyLength={keyLength} />
+                    <Box isEncryption={isEncryption} algorithm={algorithm} type={type} cryptoKey={encKey} keyLength={keyLength} baseKey={baseKey} />
                     <BoxParameters
                         isEncryption={isEncryption}
                         setIsEncryption={setIsEncryption}

@@ -9,6 +9,7 @@ interface BoxProps {
     cryptoKey: string;
     keyLength: string;
     placeholder?: string;
+    baseKey?: object;
 }
 
 interface OperationResult {
@@ -16,7 +17,7 @@ interface OperationResult {
     message: string;
 }
 
-export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength }: BoxProps) {
+export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength , baseKey}: BoxProps) {
     const [text, setText] = useState("");
     const [file, setFile] = useState<File | null>(null);
     const placeholder = isEncryption ? "Wprowadź tekst do zaszyfrowania..." : "Wprowadź tekst do odszyfrowania...";
@@ -38,7 +39,7 @@ export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength }: Box
                 showError(result.message);
             }
         } else {
-            const result  = await initializeOperation(isEncryption, algorithm, type, keyLength, cryptoKey, text) as OperationResult;
+            const result  = await initializeOperation(isEncryption, algorithm, type, keyLength, cryptoKey, text, baseKey) as OperationResult;
             if (result.success) {
                 setText(result.message);
             } else {
