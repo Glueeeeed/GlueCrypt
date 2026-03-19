@@ -3,15 +3,10 @@ import { bytesToHex, type Cipher, hexToBytes, randomBytes } from '@noble/ciphers
 import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { openDB } from 'idb';
-import {type ThumbmarkResponse} from "@thumbmarkjs/thumbmarkjs";
-import * as ThumbmarkJS from "@thumbmarkjs/thumbmarkjs";
 
 
 
-export async function getFingerprint() : Promise<ThumbmarkResponse> {
-    const tm = new ThumbmarkJS.Thumbmark();
-    return await tm.get();
-}
+
 export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey?: object) : Promise<object> {
     if (!cryptoKey) {
         return { success: false, message: 'Klucz jest wymagany!' };
@@ -51,9 +46,8 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 const salt = bytesToBase64(randomBytes(32));
                 if (isEncryption) {
                     const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
-                    console.log(data, keyHex, nonce, salt, encrypted);
                     const baseKeyObj = baseKey as any;
-                    await saveToHistory(encrypted, keyHex, algorithm, keyLength, baseKeyObj.baseKey );
+                    await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKeyObj.baseKey );
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {
                     const [salt, nonce, cipherText] = data.split(":");
@@ -127,18 +121,26 @@ async function getUserSecrets(): Promise<string[]> {
     const salt : string = await db.get('secrets', 'salt');
     const privateKeyNonce : string = await db.get('secrets', 'privateKeyNonce');
     secrets.push(secretKey, salt, privateKeyNonce);
-    console.log(secrets);
     return secrets;
 }
 
+export async function decryptSecrets(cipherTextHex : string, keyHex : string , nonceHex: string) : Promise<string> {
+    const nonce : Uint8Array<ArrayBufferLike> = hexToBytes(nonceHex);
+    const cipherText : Uint8Array<ArrayBufferLike> = hexToBytes(cipherTextHex);
+    const key : Uint8Array<ArrayBufferLike> = hexToBytes(keyHex);
+    const aes : Cipher = gcm(key, nonce);
+    const plainTextBytes : Uint8Array<ArrayBufferLike> = aes.decrypt(cipherText);
+    return new TextDecoder().decode(plainTextBytes);
+}
+
+
 
 async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string): Promise<void> {
-    const fingerprint = await getFingerprint();
     const deviceID = localStorage.getItem('DeviceID') as string;
-    const combinedKey = fingerprint.thumbmark + deviceID + baseKey;
-    console.log(fingerprint.thumbmark,deviceID,baseKey,combinedKey);
+    const combinedKey = sessionStorage.fingerprint + deviceID + baseKey;
     const secrets : string[] = await getUserSecrets();
-    const secretKey : string =  await decryptAesGcm(secrets[0], combinedKey, secrets[2], secrets[1]);
+    const secret: string = bytesToHex(pbkdf2(sha256, combinedKey, hexToBytes(secrets[1]), { c: 524288, dkLen: 32 }));
+    const secretKey : string =  await decryptSecrets(secrets[0], secret, secrets[2]);
     const keyNonce : string = bytesToBase64(randomBytes(12));
     const textNonce : string = bytesToBase64(randomBytes(12));
     const operationSalt : string = bytesToBase64(randomBytes(16));
