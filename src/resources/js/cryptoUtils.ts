@@ -9,7 +9,7 @@ import { openDB } from 'idb';
 
 
 
-export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey?: object, csrf?: string) : Promise<object> {
+export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey?: object) : Promise<object> {
     if (!cryptoKey) {
         return { success: false, message: 'Klucz jest wymagany!' };
     } else if (cryptoKey.length < 5) {
@@ -49,7 +49,7 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 if (isEncryption) {
                     const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
                     const baseKeyObj = baseKey as any;
-                    await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKeyObj.baseKey, csrf);
+                    await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKeyObj.baseKey);
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {
                     const [salt, nonce, cipherText] = data.split(":");
@@ -135,16 +135,8 @@ export async function decryptSecrets(cipherTextHex : string, keyHex : string , n
     return new TextDecoder().decode(plainTextBytes);
 }
 
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-        return decodeURIComponent(parts.pop().split(';').shift());
-    }
-    return null;
-}
 
-async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string, csrf?: string): Promise<void> {
+async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string): Promise<void> {
     const deviceID = localStorage.getItem('DeviceID') as string;
     const combinedKey = sessionStorage.fingerprint + deviceID + baseKey;
     const secrets : string[] = await getUserSecrets();
@@ -155,12 +147,9 @@ async function saveToHistory(text: string, key: string, algorithm: string,keyLen
     const operationSalt : string = bytesToBase64(randomBytes(16));
     const keyCipher : string = await encryptAesGcm(key, secretKey, keyNonce, operationSalt);
     const textCipher : string = await encryptAesGcm(text, secretKey, textNonce, operationSalt);
-    console.log(keyCipher, textCipher, algorithm, keyLength);
-    const xsrfToken = getCookie('XSRF-TOKEN');
 
     const response: Response = await fetch('/gluecrypt/api/history', {
         headers: {
-            'X-CSRF-Token': xsrfToken,
             'Content-Type': 'application/json',
         },
         method: 'POST',
