@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
        $middleware->encryptCookies(except: [
            'token',
        ]);
+        $middleware->validateCsrfTokens(except: [
+            'gluecrypt/api/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

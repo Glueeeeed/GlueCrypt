@@ -17,7 +17,11 @@ return new class extends Migration
             $table->integer('key_size');
             $table->string('encrypted_key');
             $table->string('encrypted_text');
-            $table->dateTime('created_at');
+            $table->string('keyNonce');
+            $table->string('textNonce');
+            $table->string('operation_salt');
+            $table->timestamps();
+
         });
 
     }
