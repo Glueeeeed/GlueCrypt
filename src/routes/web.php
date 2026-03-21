@@ -15,6 +15,10 @@ Route::get('/gluecrypt/account', function () {
     return Inertia::render('gluecrypt_account');
 })->middleware(JwtMiddleware::class);
 
+Route::get('/gluecrypt/account/history', function () {
+    return Inertia::render('gluecrypt_history');
+})->middleware(JwtMiddleware::class);
+
 Route::post('/gluecrypt/api/history', [HistoryController::class, 'store']);
 
 
