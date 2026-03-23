@@ -23,7 +23,9 @@ class JwtMiddleware
             $decoded = JWT::decode($token, new Key($key, 'HS256'));
             Log::info(json_encode($decoded));
              $baseKey = $decoded->baseKey;
+             $userID = $decoded->userID;
             $request->attributes->set('jwt_decoded', $baseKey);
+            $request->attributes->set('userID', $userID);
         } catch (Exception $e) {
             Log::info("JWT decoding failed: " . $e->getMessage());
             return redirect('/gluecrypt/login')->withoutCookie('token');

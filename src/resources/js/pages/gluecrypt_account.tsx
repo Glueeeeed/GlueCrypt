@@ -5,8 +5,8 @@ import {HistoryBox} from "../../components/gluecrypt_account/historyBox";
 import {StatsBox} from "../../components/gluecrypt_account/statsBox";
 
 interface Operation {
-    date: string;
-    id: string;
+    created_at: string;
+    operation_id: string;
 }
 
 interface GluecryptAccountProps {
@@ -14,17 +14,14 @@ interface GluecryptAccountProps {
     userID: string;
     encryptions: number;
     decryptions: number;
-    history?: Operation[];
+    history: Operation[];
 }
 
 
 export default function GluecryptAccount({nickname, userID, encryptions, decryptions, history}: GluecryptAccountProps) {
-    // example history
-    const exampleHistory: Operation[] = [
-        { date: '2025-03-20 14:30', id: 'Ph56yuu8758' },
-    ];
 
-    const displayHistory = history || exampleHistory;
+
+
 
     return (
         <div className="flex min-h-screen flex-col bg-[#eff1ed]">
@@ -38,7 +35,7 @@ export default function GluecryptAccount({nickname, userID, encryptions, decrypt
                         <StatsBox encryptions={encryptions} decryptions={decryptions} />
                     </div>
                     <div className="mt-8 md:flex md:justify-center w-full gap-8">
-                        <HistoryBox history={displayHistory} />
+                        <HistoryBox history={history} />
                     </div>
                 </div>
             </main>

@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('history', function (Blueprint $table) {
             $table->id();
             $table->string('user_id');
+            $table->string('operation_id');
+            $table->string('algorithm');
             $table->integer('key_size');
             $table->string('encrypted_key');
-            $table->string('encrypted_text');
+            $table->text('encrypted_text');
             $table->string('keyNonce');
             $table->string('textNonce');
             $table->string('operation_salt');

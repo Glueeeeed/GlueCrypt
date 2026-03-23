@@ -9,7 +9,7 @@ import { openDB } from 'idb';
 
 
 
-export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey?: object) : Promise<object> {
+export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey: string, userID : string) : Promise<object> {
     if (!cryptoKey) {
         return { success: false, message: 'Klucz jest wymagany!' };
     } else if (cryptoKey.length < 5) {
@@ -48,8 +48,9 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 const salt = bytesToBase64(randomBytes(32));
                 if (isEncryption) {
                     const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
-                    const baseKeyObj = baseKey as any;
-                    await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKeyObj.baseKey);
+                    console.log(userID);
+                    console.log(baseKey);
+                    await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKey,userID);
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {
                     const [salt, nonce, cipherText] = data.split(":");
@@ -136,7 +137,8 @@ export async function decryptSecrets(cipherTextHex : string, keyHex : string , n
 }
 
 
-async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string): Promise<void> {
+async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string, userID : string): Promise<void> {
+    if (event) event.preventDefault();
     const deviceID = localStorage.getItem('DeviceID') as string;
     const combinedKey = sessionStorage.fingerprint + deviceID + baseKey;
     const secrets : string[] = await getUserSecrets();
@@ -148,13 +150,16 @@ async function saveToHistory(text: string, key: string, algorithm: string,keyLen
     const keyCipher : string = await encryptAesGcm(key, secretKey, keyNonce, operationSalt);
     const textCipher : string = await encryptAesGcm(text, secretKey, textNonce, operationSalt);
 
+
+
     const response: Response = await fetch('/gluecrypt/api/history', {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        method: 'POST',
         body: JSON.stringify({
-            user_id: 'test',
+            user_id: userID,
+            algorithm: algorithm,
             key_size: keyLength,
             encrypted_key: keyCipher,
             encrypted_text: textCipher,
@@ -167,6 +172,8 @@ async function saveToHistory(text: string, key: string, algorithm: string,keyLen
     if (response.ok) {
         console.log('ok')
     }
+
+    return;
 
 
 

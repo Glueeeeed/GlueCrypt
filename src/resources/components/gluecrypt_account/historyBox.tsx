@@ -1,11 +1,11 @@
 interface Operation {
-    date: string;
-    id: string;
+    created_at: string;
+    operation_id: string;
 }
 
 
 interface HistoryBoxProps {
-    history?: Operation[];
+    history: Operation[];
     userId?: string;
 
 }
@@ -14,11 +14,10 @@ export function HistoryBox({ history = [] }: HistoryBoxProps) {
     const recentHistory = history
 
     return (
-
         <div className="mt-5 w-[75%] space-y-8 max-md:w-full">
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
                 <h3 className="mb-4 text-lg font-bold text-[#36382e]">Historia Szyfrowań</h3>
-                <div className="flex max-h-90 flex-col gap-3 overflow-y-auto pr-3 scroll-p-1">
+                <div className="flex max-h-90 scroll-p-1 flex-col gap-3 overflow-y-auto pr-3">
                     {recentHistory.length > 0 ? (
                         recentHistory.map((op, idx) => (
                             <div
@@ -29,7 +28,7 @@ export function HistoryBox({ history = [] }: HistoryBoxProps) {
                                     <div>
                                         <p className="text-sm font-semibold text-[#36382e]"> Szyfrowanie </p>
                                         <p className="text-[10px] tracking-wider text-gray-400 uppercase">
-                                            {op.id} | {op.date}
+                                            {op.operation_id} | {op.created_at.replace(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.\d+Z/, '$3.$2.$1 $4:$5:$6')}
                                         </p>
                                     </div>
                                 </div>
