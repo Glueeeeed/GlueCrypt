@@ -15,7 +15,7 @@ class HistoryService
         Log::info("Saving history to database");
         History::create([
             'user_id' => $history['user_id'],
-            'operation_id' => base64_encode(random_bytes(8)),
+            'operation_id' =>  bin2hex(random_bytes(6)),
             'algorithm' => $history['algorithm'],
             'key_size' => $history['key_size'],
             'encrypted_key' => $history['encrypted_key'],

@@ -48,7 +48,9 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 const salt = bytesToBase64(randomBytes(32));
                 if (isEncryption) {
                     const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
-                    await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKey,userID);
+                    if (saveToHistory) {
+                        await saveDataToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKey,userID);
+                    }
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {
                     const [salt, nonce, cipherText] = data.split(":");
@@ -135,8 +137,7 @@ export async function decryptSecrets(cipherTextHex : string, keyHex : string , n
 }
 
 
-async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string, userID : string): Promise<void> {
-    if (event) event.preventDefault();
+ async function saveDataToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string, userID : string): Promise<void> {
     const deviceID = localStorage.getItem('DeviceID') as string;
     const combinedKey = sessionStorage.fingerprint + deviceID + baseKey;
     const secrets : string[] = await getUserSecrets();

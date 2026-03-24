@@ -26,7 +26,7 @@ export default function Gluecrypt({baseKey, userID} : GluecryptProps) {
             <Navbar />
             <div className={'flex min-h-[calc(100vh-80px)] mt-25 w-full flex-col items-center justify-center gap-6 p-4 bg-[#eff1ed]'}>
                 <div className={'flex w-full max-w-5xl flex-row justify-center gap-6 max-md:flex-col'}>
-                    <Box isEncryption={isEncryption} algorithm={algorithm} type={type} cryptoKey={encKey} keyLength={keyLength} baseKey={baseKey} userID={userID} />
+                    <Box isEncryption={isEncryption} algorithm={algorithm} type={type} cryptoKey={encKey} keyLength={keyLength} baseKey={baseKey} userID={userID} saveToHistory={saveToHistory}/>
                     <BoxParameters
                         isEncryption={isEncryption}
                         setIsEncryption={setIsEncryption}
