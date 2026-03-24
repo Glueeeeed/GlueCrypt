@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\HistoryService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Middleware\JwtMiddleware;
@@ -13,16 +14,26 @@ Route::get('/gluecrypt', function (Illuminate\Http\Request $request) {
 })->middleware(JwtMiddleware::class);
 
 Route::get('/gluecrypt/account', function (Illuminate\Http\Request $request) {
-    $historyController = new HistoryController;
-    $data = $historyController->getHistory($request->attributes->get('userID'));
+    $historyService = new HistoryService;
+    $data = $historyService->getHistory($request->attributes->get('userID'));
     return Inertia::render('gluecrypt_account', [
         'userID' => $request->attributes->get('userID'),
         'history' => $data
     ]);
 })->middleware(JwtMiddleware::class);
 
-Route::get('/gluecrypt/account/history', function () {
-    return Inertia::render('gluecrypt_history');
+Route::get('/gluecrypt/account/history/{id}', function ($id, Illuminate\Http\Request $request) {
+
+
+    // dodac potem zabezpieczenie by tylko autor tej operacji mogl to wyswietlic
+
+
+    $historyService = new HistoryService;
+    Log::info(json_encode($historyService->getOperationDetails($id)));
+    return Inertia::render('gluecrypt_history', [
+        'details' => $historyService->getOperationDetails($id),
+        'baseKey' => $request->attributes->get('jwt_decoded'),
+    ]);
 })->middleware(JwtMiddleware::class);
 
 Route::post('/gluecrypt/api/history', [HistoryController::class, 'store']);

@@ -111,7 +111,7 @@ export async function decryptAesGcm(cipherTextBase64: string, keyHex: string, no
     return new TextDecoder().decode(plainTextBytes);
 }
 
-async function getUserSecrets(): Promise<string[]> {
+export async function getUserSecrets(): Promise<string[]> {
     const secrets: string[] = [];
     const db = await openDB('gluecrypt', 2, {
         upgrade(db) {
@@ -180,11 +180,11 @@ async function saveToHistory(text: string, key: string, algorithm: string,keyLen
 
 }
 
-function bytesToBase64(bytes: Uint8Array): string {
+export function bytesToBase64(bytes: Uint8Array): string {
     return btoa(String.fromCharCode(...bytes));
 }
 
-function base64ToBytes(base64: string): Uint8Array {
+export function base64ToBytes(base64: string): Uint8Array {
     return new Uint8Array(atob(base64).split('').map((c) => c.charCodeAt(0)),
     );
 }

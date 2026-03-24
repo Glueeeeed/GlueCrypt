@@ -28,11 +28,15 @@ export function HistoryBox({ history = [] }: HistoryBoxProps) {
                                     <div>
                                         <p className="text-sm font-semibold text-[#36382e]"> Szyfrowanie </p>
                                         <p className="text-[10px] tracking-wider text-gray-400 uppercase">
-                                            {op.operation_id} | {op.created_at.replace(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.\d+Z/, '$3.$2.$1 $4:$5:$6')}
+                                            {op.operation_id} |{' '}
+                                            {op.created_at.replace(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.\d+Z/, '$3.$2.$1 $4:$5:$6')}
                                         </p>
                                     </div>
                                 </div>
-                                <button className={'text-[#36382e] hover:underline'}>
+                                <button
+                                    onClick={() => {window.location.href = `/gluecrypt/account/history/${op.operation_id}`}}
+                                    className={'text-[#36382e] hover:underline'}
+                                >
                                     <span className="text-xs font-bold">Zobacz</span>
                                 </button>
                             </div>
