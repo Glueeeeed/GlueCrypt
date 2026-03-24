@@ -9,7 +9,7 @@ import { openDB } from 'idb';
 
 
 
-export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey: string, userID : string) : Promise<object> {
+export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey: string, userID : string, saveToHistory : boolean) : Promise<object> {
     if (!cryptoKey) {
         return { success: false, message: 'Klucz jest wymagany!' };
     } else if (cryptoKey.length < 5) {
@@ -48,8 +48,6 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 const salt = bytesToBase64(randomBytes(32));
                 if (isEncryption) {
                     const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
-                    console.log(userID);
-                    console.log(baseKey);
                     await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKey,userID);
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {
