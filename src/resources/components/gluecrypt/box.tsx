@@ -27,6 +27,7 @@ export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength , base
     const buttonTextFinal = isEncryption ? "Zaszyfruj" : "Deszyfruj";
     const buttonColorFinal = isEncryption ? "bg-[#36522e]" : "bg-[#362e36]";
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const showError = (message: string) => {
         setErrorMessage(message);
@@ -37,17 +38,21 @@ export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength , base
 
     const handleAction = async () => {
         if (type === 'file' && file) {
+            setIsProcessing(true);
             const result = await initializeOperation(isEncryption, algorithm, type, keyLength, cryptoKey, file, baseKey, userID, saveToHistory) as  OperationResult;
             if (!result.success) {
                 showError(result.message);
             }
+            setIsProcessing(false);
         } else {
+            setIsProcessing(true);
             const result  = await initializeOperation(isEncryption, algorithm, type, keyLength, cryptoKey, text, baseKey, userID, saveToHistory) as OperationResult;
             if (result.success) {
                 setText(result.message);
             } else {
                 showError(result.message);
             }
+            setIsProcessing(false);
         }
     };
 
@@ -95,7 +100,8 @@ export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength , base
             <div className="mt-12 flex flex-row justify-center gap-3">
                 <button
                     onClick={handleAction}
-                    className={`flex items-center justify-center gap-3 px-8 py-2.5 text-base font-bold text-white ${buttonColorFinal} rounded-xl transition-all hover:opacity-90 hover:shadow-lg active:scale-[0.98]`}
+                    disabled={isProcessing}
+                    className={`flex items-center justify-center gap-3 px-8 py-2.5 text-base font-bold text-white ${buttonColorFinal} rounded-xl transition-all hover:opacity-90 hover:shadow-lg active:scale-[0.98]` + (isProcessing ? ' opacity-50 cursor-not-allowed' : '')}
                 >
                     <span>{buttonTextFinal}</span>
                 </button>
