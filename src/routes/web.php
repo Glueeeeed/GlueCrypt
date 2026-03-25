@@ -29,6 +29,11 @@ Route::get('/gluecrypt/account/history/{id}', function ($id, Illuminate\Http\Req
 
 
     $historyService = new HistoryService;
+    if (!$historyService->verifyUser($request->attributes->get('userID'), $id)) {
+        return response()->json([
+            "error" => "unauthorized"
+        ], 401);
+    }
     Log::info(json_encode($historyService->getOperationDetails($id)));
     return Inertia::render('gluecrypt_history', [
         'details' => $historyService->getOperationDetails($id),

@@ -20,39 +20,29 @@ export function History({ details, baseKey }: HistoryProps) {
     const [data, setData] = useState<DecryptedData | null>(null);
 
     useEffect(() => {
-        let mounted = true;
 
         const decrypt = async () => {
             try {
-                setIsLoading(true);
-                setError(null);
-
-                const result = await initializeDecryption(details, baseKey);
-
-                if (mounted) {
-                    if (result.success && result.dataObj) {
-                        setData(result.dataObj);
-                    } else {
-                        setError("Nie udało się odszyfrować danych");
-                    }
-                }
-            } catch (err) {
-                if (mounted) {
-                    setError("Wystąpił błąd podczas odszyfrowywania");
-                    console.error(err);
-                }
-            } finally {
-                if (mounted) {
+                const data = await initializeDecryption(details,baseKey);
+                if (data.success && data.dataObj) {
+                    setData(data.dataObj as DecryptedData);
                     setIsLoading(false);
+                } else {
+                    setIsLoading(false);
+                    setError('Nie udało się odszyfrować danych. Spróbuj ponownie');
                 }
+
+            } catch {
+                setIsLoading(false);
+                setError('Wystąpił błąd podczas odszyfrowywania.');
             }
+
         };
 
-        decrypt();
+        setTimeout(() => {
+            decrypt();
+        }, 5000)
 
-        return () => {
-            mounted = false;
-        };
     }, [details, baseKey]);
 
     if (isLoading) {
@@ -71,8 +61,10 @@ export function History({ details, baseKey }: HistoryProps) {
     if (error || !data) {
         return (
             <div className="mt-5 w-[75%] max-md:w-full">
-                <div className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm text-center">
-                    <p className="text-red-600">{error || "Brak danych"}</p>
+                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <p className="py-12 text-center text-sm text-red-400 italic">
+                        {error}
+                    </p>
                 </div>
             </div>
         );
