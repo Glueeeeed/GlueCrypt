@@ -49,7 +49,7 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 if (isEncryption) {
                     const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
                     if (saveToHistory) {
-                        await saveDataToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKey,userID);
+                        await saveDataToHistory(`${salt}:${nonce}:${encrypted}`, cryptoKey, algorithm, keyLength, baseKey,userID);
                     }
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {

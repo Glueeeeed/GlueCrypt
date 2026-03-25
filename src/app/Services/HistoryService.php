@@ -4,6 +4,7 @@ namespace App\Services;
 
 use app\Models\History;
 use Illuminate\Support\Facades\Log;
+use function PHPUnit\Framework\isEmpty;
 
 
 class HistoryService
@@ -43,6 +44,18 @@ class HistoryService
         Log::info("DATA" . json_encode($data));
 
         return $data;
+    }
+
+    public function verifyUser($id, $operation_id) : bool {
+        $operationUserId = History::where('operation_id', $operation_id)->get(['user_id'])->first();
+
+       if (is_null($operationUserId)) return false;
+
+        if ($operationUserId['user_id'] !== $id) return false;
+
+
+        return true;
+
     }
 
 
