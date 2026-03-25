@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\HistoryService;
+use App\Http\Controllers\AccountController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Middleware\JwtMiddleware;
@@ -40,6 +41,8 @@ Route::get('/gluecrypt/account/history/{id}', function ($id, Illuminate\Http\Req
         'baseKey' => $request->attributes->get('jwt_decoded'),
     ]);
 })->middleware(JwtMiddleware::class);
+
+Route::post('/gluecrypt/stats', [AccountController::class, 'updateStats'])->middleware(JwtMiddleware::class);
 
 Route::post('/gluecrypt/api/history', [HistoryController::class, 'store']);
 
