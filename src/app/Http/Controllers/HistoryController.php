@@ -16,6 +16,7 @@ class HistoryController extends Controller
             $validated = $request->validate([
                 'user_id' => 'required|string',
                 'key_size' => 'required|integer',
+                'algorithm' => 'required|string',
                 'encrypted_key' => 'required|string',
                 'encrypted_text' => 'required|string',
                 'keyNonce' => 'required|string',
@@ -23,6 +24,8 @@ class HistoryController extends Controller
                 'operation_salt' => 'required|string',
             ]);
 
+
+            Log::info('gf');
 
             $history = new HistoryService();
             $history->saveToHistory($validated);
@@ -40,4 +43,6 @@ class HistoryController extends Controller
             ], 500);
         }
     }
+
+
 }

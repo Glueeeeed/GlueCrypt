@@ -13,6 +13,8 @@ class History extends EloquentModel
 
     protected $fillable = [
         "user_id",
+        "operation_id",
+        "algorithm",
         "key_size",
         "encrypted_key",
         "encrypted_text",

@@ -128,14 +128,23 @@ export function BoxParameters({
                 )}
             </div>
 
-            <div className="flex flex-row gap-1.5 border-gray-200  rounded-md  bg-gray-50 px-3 py-3">
+            <div className={`flex flex-row gap-1.5 border-gray-200 rounded-md bg-gray-50 px-3 py-3 ${type === 'file' ? 'opacity-60 grayscale cursor-not-allowed' : ''}`}>
                 <div>
                     <label className="text-sm font-semibold text-gray-600">Zapisywanie do Historii</label>
-                    <p className="text-xs text-gray-500">Włącz zapisywanie twoich operacji w bezpiecznej historii.</p>
+                    <p className="text-xs text-gray-500">
+                        {type === 'file' ? 'Historia jest dostępna tylko dla tekstu. Pliki są nieobsługiwane.' : 'Włącz zapisywanie twoich operacji w bezpiecznej historii.'}
+                    </p>
                 </div>
 
-                <label className="inline-flex cursor-pointer items-center">
-                    <input type="checkbox" value="" className="peer sr-only" checked={saveToHistory} onChange={(e) => setSaveToHistory(e.target.checked)} />
+                <label className={`inline-flex items-center ${type === 'file' ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <input
+                        type="checkbox"
+                        value=""
+                        className="peer sr-only"
+                        checked={saveToHistory && type !== 'file'}
+                        onChange={(e) => setSaveToHistory(e.target.checked)}
+                        disabled={type === 'file'}
+                    />
                     <div className="peer relative h-5 w-11 rounded-full bg-gray-200 peer-checked:bg-[#36382e] peer-focus:outline-none after:absolute after:inset-s-0.5 after:top-0.5 after:h-4 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full"></div>
                 </label>
             </div>

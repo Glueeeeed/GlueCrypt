@@ -9,7 +9,9 @@ import { openDB } from 'idb';
 
 
 
-export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey?: object) : Promise<object> {
+
+
+export async function initializeOperation(isEncryption: boolean, algorithm: string, type: string, keyLength: string, cryptoKey: string, data: string | File, baseKey: string, userID : string, saveToHistory : boolean) : Promise<object> {
     if (!cryptoKey) {
         return { success: false, message: 'Klucz jest wymagany!' };
     } else if (cryptoKey.length < 5) {
@@ -20,7 +22,7 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
 
     if (algorithm === "AES") {
         try {
-            const keyHex = bytesToHex(new TextEncoder().encode(cryptoKey).slice(0, parseInt(keyLength) / 8));
+            const keyHex = bytesToHex(new TextEncoder().encode(cryptoKey));
 
             if (type === 'file' && data instanceof File) {
                 const fileData = new Uint8Array(await data.arrayBuffer());
@@ -28,7 +30,7 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 const salt : Uint8Array<ArrayBufferLike> = randomBytes(32);
 
                 if (isEncryption) {
-                    const encrypted : Uint8Array<ArrayBufferLike> = await encryptAesGcmRaw(fileData, keyHex, nonce, salt);
+                    const encrypted : Uint8Array<ArrayBufferLike> = await encryptAesGcmRaw(fileData, keyHex, nonce, salt,keyLength);
                     const result = new Uint8Array(salt.length + nonce.length + encrypted.length);
                     result.set(salt);
                     result.set(nonce, salt.length);
@@ -39,7 +41,7 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                     const salt : Uint8Array<ArrayBuffer> = fileData.slice(0, 32);
                     const nonce : Uint8Array<ArrayBuffer> = fileData.slice(32, 44);
                     const cipherText : Uint8Array<ArrayBuffer> = fileData.slice(44);
-                    const decrypted : Uint8Array<ArrayBufferLike> = await decryptAesGcmRaw(cipherText, keyHex, nonce, salt);
+                    const decrypted : Uint8Array<ArrayBufferLike> = await decryptAesGcmRaw(cipherText, keyHex, nonce, salt,keyLength);
                     downloadFile(decrypted, data.name.replace(".gluecrypted", ""), "application/octet-stream");
                     return { success: true};
                 }
@@ -47,13 +49,14 @@ export async function initializeOperation(isEncryption: boolean, algorithm: stri
                 const nonce = bytesToBase64(randomBytes(12));
                 const salt = bytesToBase64(randomBytes(32));
                 if (isEncryption) {
-                    const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt);
-                    const baseKeyObj = baseKey as any;
-                    await saveToHistory(encrypted, cryptoKey, algorithm, keyLength, baseKeyObj.baseKey);
+                    const encrypted =  await encryptAesGcm(data, keyHex, nonce, salt,keyLength);
+                    if (saveToHistory) {
+                        await saveDataToHistory(`${salt}:${nonce}:${encrypted}`, cryptoKey, algorithm, keyLength, baseKey,userID);
+                    }
                     return { success: true, message: `${salt}:${nonce}:${encrypted}` };
                 } else {
                     const [salt, nonce, cipherText] = data.split(":");
-                    const decrypted = await decryptAesGcm(cipherText, keyHex, nonce, salt);
+                    const decrypted = await decryptAesGcm(cipherText, keyHex, nonce, salt,keyLength);
                     return { success: true, message: decrypted };
                 }
             }
@@ -76,14 +79,14 @@ function downloadFile(data: Uint8Array | BlobPart, filename: string, mimeType: s
     window.URL.revokeObjectURL(url);
 }
 
-export async function encryptAesGcmRaw(data: Uint8Array, keyHex: string, nonce: Uint8Array, salt: Uint8Array): Promise<Uint8Array> {
-    const key: Uint8Array = pbkdf2(sha256, keyHex, salt, { c: 524288, dkLen: 32 });
+export async function encryptAesGcmRaw(data: Uint8Array, keyHex: string, nonce: Uint8Array, salt: Uint8Array, keyLength: string): Promise<Uint8Array> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, salt, { c: 524288, dkLen: parseInt(keyLength) / 8 });
     const aes: Cipher = gcm(key, nonce);
     return aes.encrypt(data);
 }
 
-export async function decryptAesGcmRaw(cipherText: Uint8Array, keyHex: string, nonce: Uint8Array, salt: Uint8Array): Promise<Uint8Array> {
-    const key: Uint8Array = pbkdf2(sha256, keyHex, salt, { c: 524288, dkLen: 32 });
+export async function decryptAesGcmRaw(cipherText: Uint8Array, keyHex: string, nonce: Uint8Array, salt: Uint8Array, keyLength: string): Promise<Uint8Array> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, salt, { c: 524288, dkLen: parseInt(keyLength) / 8 });
     const aes: Cipher = gcm(key, nonce);
     return aes.decrypt(cipherText);
 }
@@ -92,8 +95,8 @@ export function generateRandomKey(length: number): string {
     return bytesToHex(randomBytes(length));
 }
 
-export async function encryptAesGcm(plainText: string, keyHex: string, nonceBase64: string, saltBase64: string): Promise<string> {
-    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(saltBase64), { c: 524288, dkLen: 32 });
+export async function encryptAesGcm(plainText: string, keyHex: string, nonceBase64: string, saltBase64: string, keyLength: string): Promise<string> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(saltBase64), { c: 524288, dkLen: parseInt(keyLength) / 8 });
     const nonce: Uint8Array = base64ToBytes(nonceBase64);
     const data: Uint8Array = new TextEncoder().encode(plainText);
     const aes: Cipher = gcm(key, nonce);
@@ -101,8 +104,8 @@ export async function encryptAesGcm(plainText: string, keyHex: string, nonceBase
     return bytesToBase64(cipher);
 }
 
-export async function decryptAesGcm(cipherTextBase64: string, keyHex: string, nonceBase64: string, saltBase64: string): Promise<string> {
-    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(saltBase64), { c: 524288, dkLen: 32 });
+export async function decryptAesGcm(cipherTextBase64: string, keyHex: string, nonceBase64: string, saltBase64: string, keyLength: string): Promise<string> {
+    const key: Uint8Array = pbkdf2(sha256, keyHex, base64ToBytes(saltBase64), { c: 524288, dkLen: parseInt(keyLength) / 8 });
     const nonce: Uint8Array = base64ToBytes(nonceBase64);
     const cipherText: Uint8Array = base64ToBytes(cipherTextBase64);
     const aes: Cipher = gcm(key, nonce);
@@ -110,7 +113,7 @@ export async function decryptAesGcm(cipherTextBase64: string, keyHex: string, no
     return new TextDecoder().decode(plainTextBytes);
 }
 
-async function getUserSecrets(): Promise<string[]> {
+export async function getUserSecrets(): Promise<string[]> {
     const secrets: string[] = [];
     const db = await openDB('gluecrypt', 2, {
         upgrade(db) {
@@ -136,7 +139,7 @@ export async function decryptSecrets(cipherTextHex : string, keyHex : string , n
 }
 
 
-async function saveToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string): Promise<void> {
+ async function saveDataToHistory(text: string, key: string, algorithm: string,keyLength: string, baseKey : string, userID : string): Promise<void> {
     const deviceID = localStorage.getItem('DeviceID') as string;
     const combinedKey = sessionStorage.fingerprint + deviceID + baseKey;
     const secrets : string[] = await getUserSecrets();
@@ -145,16 +148,19 @@ async function saveToHistory(text: string, key: string, algorithm: string,keyLen
     const keyNonce : string = bytesToBase64(randomBytes(12));
     const textNonce : string = bytesToBase64(randomBytes(12));
     const operationSalt : string = bytesToBase64(randomBytes(16));
-    const keyCipher : string = await encryptAesGcm(key, secretKey, keyNonce, operationSalt);
-    const textCipher : string = await encryptAesGcm(text, secretKey, textNonce, operationSalt);
+    const keyCipher : string = await encryptAesGcm(key, secretKey, keyNonce, operationSalt,"256");
+    const textCipher : string = await encryptAesGcm(text, secretKey, textNonce, operationSalt,"256");
+
+
 
     const response: Response = await fetch('/gluecrypt/api/history', {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        method: 'POST',
         body: JSON.stringify({
-            user_id: 'test',
+            user_id: userID,
+            algorithm: algorithm,
             key_size: keyLength,
             encrypted_key: keyCipher,
             encrypted_text: textCipher,
@@ -168,16 +174,18 @@ async function saveToHistory(text: string, key: string, algorithm: string,keyLen
         console.log('ok')
     }
 
+    return;
+
 
 
 
 }
 
-function bytesToBase64(bytes: Uint8Array): string {
+export function bytesToBase64(bytes: Uint8Array): string {
     return btoa(String.fromCharCode(...bytes));
 }
 
-function base64ToBytes(base64: string): Uint8Array {
+export function base64ToBytes(base64: string): Uint8Array {
     return new Uint8Array(atob(base64).split('').map((c) => c.charCodeAt(0)),
     );
 }

@@ -6,21 +6,27 @@ import {Navbar} from "../../components/gluecrypt/navbar";
 
 interface GluecryptProps {
     baseKey?: object;
+    userID?: string;
 }
 
-export default function Gluecrypt(baseKey : GluecryptProps) {
+export default function Gluecrypt({baseKey, userID} : GluecryptProps) {
     const [algorithm, setAlgorithm] = useState('AES');
     const [isEncryption, setIsEncryption] = useState(true);
     const [keyLength, setKeyLength] = useState('256');
     const [encKey, setEncKey] = useState('');
     const [type, setType] = useState('text');
     const [saveToHistory, setSaveToHistory] = useState(true);
+    function test() {
+        console.log(userID);
+    }
+
+    test();
     return (
         <>
             <Navbar />
             <div className={'flex min-h-[calc(100vh-80px)] mt-25 w-full flex-col items-center justify-center gap-6 p-4 bg-[#eff1ed]'}>
                 <div className={'flex w-full max-w-5xl flex-row justify-center gap-6 max-md:flex-col'}>
-                    <Box isEncryption={isEncryption} algorithm={algorithm} type={type} cryptoKey={encKey} keyLength={keyLength} baseKey={baseKey} />
+                    <Box isEncryption={isEncryption} algorithm={algorithm} type={type} cryptoKey={encKey} keyLength={keyLength} baseKey={baseKey} userID={userID} saveToHistory={saveToHistory}/>
                     <BoxParameters
                         isEncryption={isEncryption}
                         setIsEncryption={setIsEncryption}
