@@ -23,11 +23,11 @@ interface OperationResult {
 export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength , baseKey, userID, setSaveToHistory, saveToHistory}: BoxProps) {
     const [text, setText] = useState("");
     const [file, setFile] = useState<File | null>(null);
-    const placeholder = isEncryption ? "Wprowadź tekst do zaszyfrowania..." : "Wprowadź tekst do odszyfrowania...";
-    const buttonTextFinal = isEncryption ? "Zaszyfruj" : "Deszyfruj";
-    const buttonColorFinal = isEncryption ? "bg-[#36522e]" : "bg-[#362e36]";
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const placeholder = isEncryption ? "Wprowadź tekst do zaszyfrowania..." : "Wprowadź tekst do odszyfrowania...";
+    const buttonTextFinal = isProcessing ? "Poczekaj" : isEncryption ? "Zaszyfruj" : "Deszyfruj";
+    const buttonColorFinal = isEncryption ? "bg-[#36522e]" : "bg-[#362e36]";
 
     const showError = (message: string) => {
         setErrorMessage(message);
@@ -42,6 +42,7 @@ export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength , base
             const result = await initializeOperation(isEncryption, algorithm, type, keyLength, cryptoKey, file, baseKey, userID, saveToHistory) as  OperationResult;
             if (!result.success) {
                 showError(result.message);
+                setIsProcessing(false);
             }
             setIsProcessing(false);
         } else {
@@ -49,10 +50,13 @@ export function Box({ isEncryption, cryptoKey, algorithm, type, keyLength , base
             const result  = await initializeOperation(isEncryption, algorithm, type, keyLength, cryptoKey, text, baseKey, userID, saveToHistory) as OperationResult;
             if (result.success) {
                 setText(result.message);
+                setIsProcessing(false);
             } else {
                 showError(result.message);
+                setIsProcessing(false);
             }
             setIsProcessing(false);
+
         }
     };
 

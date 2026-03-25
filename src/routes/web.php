@@ -22,11 +22,11 @@ Route::get('/gluecrypt/account', function (Illuminate\Http\Request $request) {
     ]);
 })->middleware(JwtMiddleware::class);
 
+Route::get('/gluecrypt/account/logout', function () {
+    redirect('/gluecrypt/login')->withoutCookie('token');
+});
+
 Route::get('/gluecrypt/account/history/{id}', function ($id, Illuminate\Http\Request $request) {
-
-
-    // dodac potem zabezpieczenie by tylko autor tej operacji mogl to wyswietlic
-
 
     $historyService = new HistoryService;
     if (!$historyService->verifyUser($request->attributes->get('userID'), $id)) {

@@ -18,8 +18,8 @@ export async function decryptHistory(data : any, baseKey: string) : Promise<any>
     const operationSalt = data[0].operation_salt;
     const secret: string = bytesToHex(pbkdf2(sha256, combinedKey, hexToBytes(secrets[1]), { c: 524288, dkLen: 32 }));
     const secretKey : string =  await decryptSecrets(secrets[0], secret, secrets[2]);
-    const decryptedText : string = await decryptAesGcm(data[0].encrypted_text,secretKey,textNonce,operationSalt);
-    const decryptedKey : string = await decryptAesGcm(data[0].encrypted_key,secretKey,keyNonce,operationSalt);
+    const decryptedText : string = await decryptAesGcm(data[0].encrypted_text,secretKey,textNonce,operationSalt, "256");
+    const decryptedKey : string = await decryptAesGcm(data[0].encrypted_key,secretKey,keyNonce,operationSalt, "256");
     decryptedData.push(decryptedText);
     decryptedData.push(decryptedKey);
     decryptedData.push(data[0].algorithm);
